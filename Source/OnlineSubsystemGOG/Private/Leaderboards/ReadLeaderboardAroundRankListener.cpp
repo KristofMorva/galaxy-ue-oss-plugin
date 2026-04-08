@@ -22,7 +22,7 @@ FReadLeaderboardAroundRankListener::FReadLeaderboardAroundRankListener(
 void FReadLeaderboardAroundRankListener::RequestLeaderboardEntries()
 {
 	galaxy::api::Stats()->RequestLeaderboardEntriesGlobal(
-		TCHAR_TO_UTF8(*readLeaderboard->LeaderboardName.ToString()),
+		TCHAR_TO_UTF8(*NameToString(readLeaderboard->LeaderboardName)),
 		rank - std::min<uint32>(rank, range),
 		static_cast<uint32>(std::min<uint64>(std::numeric_limits<uint32>::max(), rank + range)),
 		this);
@@ -31,7 +31,7 @@ void FReadLeaderboardAroundRankListener::RequestLeaderboardEntries()
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard entries around rank: leaderboardName='%s', rank=%d, range=%u; %s; %s"),
-			*readLeaderboard->LeaderboardName.ToString(), rank, range, UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(readLeaderboard->LeaderboardName), rank, range, UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 		TriggerOnLeaderboardReadCompleteDelegates(false);
 		return;

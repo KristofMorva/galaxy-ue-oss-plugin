@@ -25,7 +25,9 @@ public:
 	}
 };
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION <= 6)
 inline size_t GetTypeHash(const TUniquePtr<IListenerGOG>& inListener)
 {
 	return reinterpret_cast<size_t>(inListener.Get());
 }
+#endif

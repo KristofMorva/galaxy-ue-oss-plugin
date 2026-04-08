@@ -15,13 +15,13 @@ FReadLeaderboardAroundUserListener::FReadLeaderboardAroundUserListener(
 
 void FReadLeaderboardAroundUserListener::RequestLeaderboardEntries()
 {
-	galaxy::api::Stats()->RequestLeaderboardEntriesAroundUser(TCHAR_TO_UTF8(*readLeaderboard->LeaderboardName.ToString()), range, range, *player, this);
+	galaxy::api::Stats()->RequestLeaderboardEntriesAroundUser(TCHAR_TO_UTF8(*NameToString(readLeaderboard->LeaderboardName)), range, range, *player, this);
 
 	auto err = galaxy::api::GetError();
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard entries around user: leaderboardName='%s', playerID='%s', range=%u; %s; %s"),
-			*readLeaderboard->LeaderboardName.ToString(), *player->ToString(), range, UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(readLeaderboard->LeaderboardName), *player->ToString(), range, UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 		TriggerOnLeaderboardReadCompleteDelegates(false);
 		return;

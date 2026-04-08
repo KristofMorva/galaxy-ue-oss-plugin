@@ -32,3 +32,10 @@ inline uint64 CharLen(const FString& InString)
 {
 	return static_cast<uint64>(InString.Len()) * sizeof(FString::ElementType);
 }
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 5)
+template<typename T>
+inline FString NameToString(const T& InName) { return FString(InName); }
+#else
+inline FString NameToString(const FName& InName) { return InName.ToString(); }
+#endif

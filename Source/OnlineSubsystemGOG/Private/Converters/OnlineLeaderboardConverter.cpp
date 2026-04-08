@@ -17,7 +17,7 @@ namespace OnlineLeaderboardConverter
 		for (const auto& leaderboardRow : InLeaderboard)
 		{
 			auto jsonLeaderboardRow = leaderboardRow.Value.ToJson();
-			jsonLeaderboardRow->SetStringField(TEXT_LEADERBOARD_COLUMN_NAME, leaderboardRow.Key.ToString());
+			jsonLeaderboardRow->SetStringField(TEXT_LEADERBOARD_COLUMN_NAME, NameToString(leaderboardRow.Key));
 			jsonLeaderboard.Add(MakeShared<FJsonValueObject>(jsonLeaderboardRow));
 		}
 
