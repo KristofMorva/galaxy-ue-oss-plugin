@@ -63,9 +63,9 @@ void FOnlineAchievementsGOG::WriteAchievements(const FUniqueNetId& InPlayerId, F
 	FOnlineAchievementDesc achievementDescription;
 	for (const auto& achievement : InWriteObject->Properties)
 	{
-		if (GetCachedAchievementDescription(achievement.Key.ToString(), achievementDescription) == EOnlineCachedResult::NotFound)
+		if (GetCachedAchievementDescription(NameToString(achievement.Key), achievementDescription) == EOnlineCachedResult::NotFound)
 		{
-			UE_LOG_ONLINE_ACHIEVEMENTS(Error, TEXT("Unknown achievement: achievementID='%s'"), *achievement.Key.ToString());
+			UE_LOG_ONLINE_ACHIEVEMENTS(Error, TEXT("Unknown achievement: achievementID='%s'"), *NameToString(achievement.Key));
 			InWriteObject->WriteState = EOnlineAsyncTaskState::Failed;
 			InDelegate.ExecuteIfBound(InPlayerId, false);
 			return;
@@ -74,12 +74,12 @@ void FOnlineAchievementsGOG::WriteAchievements(const FUniqueNetId& InPlayerId, F
 		// Ignore achievements progress value and consider all provided achievements as unlocked.
 		// TBD: alternatively implement achievements progress as user stats (then ignore them when processing normal stats)
 		// or create new Galaxy "progressable" achievements
-		galaxy::api::Stats()->SetAchievement(TCHAR_TO_UTF8(*achievement.Key.ToString()));
+		galaxy::api::Stats()->SetAchievement(TCHAR_TO_UTF8(*NameToString(achievement.Key)));
 		auto err = galaxy::api::GetError();
 		if (err)
 		{
 			UE_LOG_ONLINE_ACHIEVEMENTS(Error, TEXT("Failed to unlock player achievement: playerID='%s'; achievementID='%s'; %s; %s"),
-				*InPlayerId.ToString(), *achievement.Key.ToString(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+				*InPlayerId.ToString(), *NameToString(achievement.Key), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 			InWriteObject->WriteState = EOnlineAsyncTaskState::Failed;
 			InDelegate.ExecuteIfBound(InPlayerId, false);

@@ -23,6 +23,10 @@
 
 #include <algorithm>
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 5)
+#include "Online/OnlineSessionNames.h"
+#endif
+
 // HACK: these defines are missing from UE 5.4 source
 #if (ENGINE_MINOR_VERSION >= 4 && ENGINE_MAJOR_VERSION >= 5)
 /**
@@ -658,7 +662,7 @@ bool FOnlineSessionGOG::UpdateSession(FName InSessionName, FOnlineSessionSetting
 		if (err)
 		{
 			UE_LOG_ONLINE_SESSION(Error, TEXT("Failed to set rich presence connect string: connectString='%s'; %s: %s"),
-				UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+				*connectString, UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 		}
 	}
 
@@ -761,7 +765,7 @@ bool FOnlineSessionGOG::DestroySession(FName InSessionName, const FOnDestroySess
 	galaxy::api::Matchmaking()->LeaveLobby(FUniqueNetIdGOG{storedSession->SessionInfo->GetSessionId()});
 	err = galaxy::api::GetError();
 	if (err)
-		UE_LOG_ONLINE_SESSION(Error, TEXT("Failed to leave lobby: lobbyID=%llu, %s; %s"), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+		UE_LOG_ONLINE_SESSION(Error, TEXT("Failed to leave lobby: lobbyID=%llu, %s; %s"), *storedSession->SessionInfo->GetSessionId().ToString(),UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 	RemoveNamedSession(InSessionName);
 

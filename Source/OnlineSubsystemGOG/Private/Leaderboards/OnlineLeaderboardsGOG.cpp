@@ -61,7 +61,11 @@ namespace
 		return SafeGetInt32Value(*ratedStat, OutMainScore);
 	}
 
+#if (ENGINE_MINOR_VERSION >= 5 && ENGINE_MAJOR_VERSION >= 5)
+	auto GetStatsForLeaderboardDetails(const FString& InRatedStatName, FStatPropertyArray InLeaderboardStats)
+#else
 	auto GetStatsForLeaderboardDetails(const FName& InRatedStatName, FStatPropertyArray InLeaderboardStats)
+#endif
 	{
 		// Copy all rows except main stat
 		InLeaderboardStats.Remove(InRatedStatName);
@@ -99,12 +103,15 @@ bool FOnlineLeaderboardsGOG::MarkLeaderboardStarted(FOnlineLeaderboardReadRef& I
 {
 	if (InOutReadLeaderboard->ReadState == EOnlineAsyncTaskState::InProgress)
 	{
-		UE_LOG_ONLINE_LEADERBOARD(Warning, TEXT("There seems to be another ReadLeaderboard() call made: leaderboardName='%s'"), *InOutReadLeaderboard->LeaderboardName.ToString());
+		UE_LOG_ONLINE_LEADERBOARD(Warning, TEXT("There seems to be another ReadLeaderboard() call made: leaderboardName='%s'"), *NameToString(InOutReadLeaderboard->LeaderboardName));
 		// Everything else will be done by appropriate call
 		return false;
 	}
-
+#if (ENGINE_MINOR_VERSION >= 5 && ENGINE_MAJOR_VERSION >= 5)
+	if (InOutReadLeaderboard->LeaderboardName.IsEmpty())
+#else
 	if (InOutReadLeaderboard->LeaderboardName.IsNone())
+#endif
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Empty leaderboard name"));
 		InOutReadLeaderboard->ReadState = EOnlineAsyncTaskState::Failed;
@@ -134,14 +141,14 @@ bool FOnlineLeaderboardsGOG::ReadLeaderboards(const TArray<TSharedRef<const FUni
 	auto listener = CreateListener<FReadLeaderboardForUsersListener>(*this, InPlayers, InOutReadLeaderboard);
 
 	galaxy::api::Stats()->FindLeaderboard(
-		TCHAR_TO_UTF8(*InOutReadLeaderboard->LeaderboardName.ToString()),
+		TCHAR_TO_UTF8(*NameToString(InOutReadLeaderboard->LeaderboardName)),
 		listener.Value);
 
 	auto err = galaxy::api::GetError();
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard definitions: leaderboardName='%s'; %s; %s"),
-			*InOutReadLeaderboard->LeaderboardName.ToString(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(InOutReadLeaderboard->LeaderboardName), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 		InOutReadLeaderboard->ReadState = EOnlineAsyncTaskState::Failed;
 
 		FreeListener(MoveTemp(listener.Key));
@@ -206,14 +213,14 @@ bool FOnlineLeaderboardsGOG::ReadLeaderboardsAroundRank(int32 InRank, uint32 InR
 
 	auto listener = CreateListener<FReadLeaderboardAroundRankListener>(*this, InRank, InRange, InOutReadLeaderboard);
 	galaxy::api::Stats()->FindLeaderboard(
-		TCHAR_TO_UTF8(*InOutReadLeaderboard->LeaderboardName.ToString()),
+		TCHAR_TO_UTF8(*NameToString(InOutReadLeaderboard->LeaderboardName)),
 		listener.Value);
 
 	auto err = galaxy::api::GetError();
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard definitions: leaderboardName='%s'; %s; %s"),
-			*InOutReadLeaderboard->LeaderboardName.ToString(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(InOutReadLeaderboard->LeaderboardName), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 		InOutReadLeaderboard->ReadState = EOnlineAsyncTaskState::Failed;
 
 		FreeListener(MoveTemp(listener.Key));
@@ -243,13 +250,13 @@ bool FOnlineLeaderboardsGOG::ReadLeaderboardsAroundUser(TSharedRef<const FUnique
 
 	auto listener = CreateListener<FReadLeaderboardAroundUserListener>(*this, StaticCastSharedRef<const FUniqueNetIdGOG>(InPlayer), InRange, InOutReadLeaderboard);
 	galaxy::api::Stats()->FindLeaderboard(
-		TCHAR_TO_UTF8(*InOutReadLeaderboard->LeaderboardName.ToString()),
+		TCHAR_TO_UTF8(*NameToString(InOutReadLeaderboard->LeaderboardName)),
 		listener.Value);
 	auto err = galaxy::api::GetError();
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard definitions: leaderboardName='%s'; %s; %s"),
-			*InOutReadLeaderboard->LeaderboardName.ToString(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(InOutReadLeaderboard->LeaderboardName), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 		InOutReadLeaderboard->ReadState = EOnlineAsyncTaskState::Failed;
 
 		FreeListener(MoveTemp(listener.Key));
@@ -306,7 +313,7 @@ bool FOnlineLeaderboardsGOG::UpdateWriteCache(const FName& InSessionName, FOnlin
 	auto& sessionCache = writeLeaderboardCache.FindOrAdd(InSessionName);
 	for (const auto& leaderboardToAdd : InWriteLeaderboard.LeaderboardNames)
 	{
-		auto cachedLeadeboard = sessionCache.Find(leaderboardToAdd);
+		auto cachedLeadeboard = sessionCache.Find(*NameToString(leaderboardToAdd));
 		if (!cachedLeadeboard)
 		{
 			sessionCache.Emplace(

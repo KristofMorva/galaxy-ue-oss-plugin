@@ -48,8 +48,8 @@ FLeaderboardRetriever::FLeaderboardRetriever(class FOnlineLeaderboardsGOG& InLea
 	, readLeaderboard{MoveTemp(InInOutReadLeaderboard)}
 {
 	UE_LOG_ONLINE_LEADERBOARD(Display, TEXT("Retrieving leaderboard: name=%s, sortedColumn=%s, readState=%s"),
-		*readLeaderboard->LeaderboardName.ToString(),
-		*readLeaderboard->SortedColumn.ToString(),
+		*NameToString(readLeaderboard->LeaderboardName),
+		*NameToString(readLeaderboard->SortedColumn),
 		EOnlineAsyncTaskState::ToString(readLeaderboard->ReadState));
 }
 
@@ -88,7 +88,7 @@ void FLeaderboardRetriever::OnLeaderboardEntriesRetrieveSuccess(const char* InNa
 		if (err)
 		{
 			UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to read retrieved leaderboard entries: leaderboardName='%s'; %s; %s"),
-				*readLeaderboard->LeaderboardName.ToString(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+				*NameToString(readLeaderboard->LeaderboardName), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 			TriggerOnLeaderboardReadCompleteDelegates(false);
 			return;

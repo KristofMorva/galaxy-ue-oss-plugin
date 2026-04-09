@@ -18,12 +18,12 @@ void FReadLeaderboardForUsersListener::RequestLeaderboardEntries()
 	for (const auto& player : players)
 		galaxyUsers.Emplace(FUniqueNetIdGOG{*player});
 
-	galaxy::api::Stats()->RequestLeaderboardEntriesForUsers(TCHAR_TO_UTF8(*readLeaderboard->LeaderboardName.ToString()), galaxyUsers.GetData(), galaxyUsers.Num(), this);
+	galaxy::api::Stats()->RequestLeaderboardEntriesForUsers(TCHAR_TO_UTF8(*NameToString(readLeaderboard->LeaderboardName)), galaxyUsers.GetData(), galaxyUsers.Num(), this);
 	auto err = galaxy::api::GetError();
 	if (err)
 	{
 		UE_LOG_ONLINE_LEADERBOARD(Error, TEXT("Failed to request leaderboard entries for users: leaderboardName='%s', playerCount='%d'; %s; %s"),
-			*readLeaderboard->LeaderboardName.ToString(), players.Num(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
+			*NameToString(readLeaderboard->LeaderboardName), players.Num(), UTF8_TO_TCHAR(err->GetName()), UTF8_TO_TCHAR(err->GetMsg()));
 
 		TriggerOnLeaderboardReadCompleteDelegates(false);
 		return;
